@@ -1,14 +1,13 @@
 package main
 
 import (
+	"coupecoupe/ui/editor"
+	"coupecoupe/ui/theme"
 	"flag"
 	"fmt"
 	"os"
 
 	"gioui.org/app"
-
-	"coupecoupe/ui/editor"
-	"coupecoupe/ui/theme"
 )
 
 func OpenImageWindow(filePath string) error {

@@ -1,0 +1,17 @@
+version: "2"
+
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - golines
+
+  settings:
+    golines:
+      max-len: 80
+      shorten-comments: true
+      reformat-tags: true
+
+  exclusions:
+    paths:
+      - gioui/

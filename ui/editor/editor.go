@@ -1,6 +1,8 @@
 package editor
 
 import (
+	"coupecoupe/filesystem"
+	"coupecoupe/ui/theme"
 	"fmt"
 	"image"
 	"os"
@@ -11,18 +13,17 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/widget"
 
+	patchedwidget "coupecoupe/gioui/widget"
+
 	chaparwidgets "github.com/chapar-rest/chapar/ui/widgets"
 
-	"coupecoupe/filesystem"
-	patchedwidget "coupecoupe/gioui/widget"
-	"coupecoupe/ui/theme"
-	coupecoupewidgets "coupecoupe/ui/widgets"
+	uiwidgets "coupecoupe/ui/widgets"
 )
 
 type ImageEditor struct {
 	ImageName    string
 	OriginalFile string
-	imageWidget  coupecoupewidgets.SelectableImage
+	imageWidget  uiwidgets.SelectableImage
 }
 
 func NewImageEditor(filePath string) (*ImageEditor, error) {
@@ -40,13 +41,14 @@ func NewImageEditor(filePath string) (*ImageEditor, error) {
 		return nil, err
 	}
 
-	imageWidget := coupecoupewidgets.SelectableImage{
+	imageWidget := uiwidgets.SelectableImage{
 		Image: image,
 		ImageWigdet: patchedwidget.Image{
 			Src:      paint.NewImageOp(image),
 			Fit:      patchedwidget.Contain,
 			Position: layout.Center,
-		}}
+		},
+	}
 
 	return &ImageEditor{
 		ImageName:    filesystem.FileName(imageFilePath),
@@ -56,10 +58,8 @@ func NewImageEditor(filePath string) (*ImageEditor, error) {
 }
 
 func (ie *ImageEditor) toolbar(gtx layout.Context) layout.Dimensions {
-	return layout.Flex{
-		Axis: layout.Horizontal,
-		Gap:  4,
-	}.Layout(gtx,
+	return layout.Flex{Axis: layout.Horizontal, Gap: 4}.Layout(
+		gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return chaparwidgets.Button(
 				theme.Theme,
@@ -79,10 +79,11 @@ func (ie *ImageEditor) drawLayout(gtx layout.Context) {
 	)
 }
 
-// Creates the editor window.
+// Creates the image editor window.
 func (ie *ImageEditor) CreateWindow() {
 	go func(ie *ImageEditor) error {
 		window := new(app.Window)
+
 		window.Option(
 			app.Title(fmt.Sprintf("%s - coupe|coupe", ie.ImageName)),
 			app.TopMost(true),

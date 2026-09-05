@@ -1,7 +1,9 @@
 package widgets
 
 import (
+	"coupecoupe/crop"
 	"coupecoupe/gioui/widget"
+	"coupecoupe/math"
 	"fmt"
 	"image"
 	"image/color"
@@ -13,9 +15,6 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
-
-	"coupecoupe/crop"
-	"coupecoupe/math"
 )
 
 type SelectableImage struct {
@@ -52,7 +51,12 @@ func (s *SelectableImage) crop() error {
 	startCoordinate := s.getRealCoordinates(*scaledStart)
 	endCoordinate := s.getRealCoordinates(*scaledEnd)
 
-	crop.Cutout(startCoordinate.Round(), endCoordinate.Round(), s.Image, isHorizontal)
+	crop.Cutout(
+		startCoordinate.Round(),
+		endCoordinate.Round(),
+		s.Image,
+		isHorizontal,
+	)
 	return nil
 }
 
