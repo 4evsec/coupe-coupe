@@ -7,6 +7,7 @@ import (
 
 	"gioui.org/f32"
 	"gioui.org/io/event"
+	"gioui.org/io/key"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op/clip"
@@ -45,33 +46,50 @@ func getSelectionRectangle(gtx layout.Context, start, end f32.Point) *image.Rect
 	return &image.Rectangle{Min: Min, Max: Max}
 }
 
+func (s *SelectableImage) handlePointerEvents(ev pointer.Event) {
+	switch ev.Kind {
+	case pointer.Press:
+		s.dragging = true
+		s.startPosition = ev.Position
+		s.endPosition = ev.Position
+	case pointer.Move, pointer.Drag:
+		if s.dragging {
+			s.endPosition = ev.Position
+		}
+	case pointer.Release:
+		if s.dragging {
+			s.dragging = false
+			//
+		}
+	}
+}
+
+func (s *SelectableImage) handleKeyEvents(ev key.Event) {
+	switch ev.Name {
+	case key.NameEscape:
+		s.dragging = false
+	}
+}
+
 // Handles pointer events and updates the selection position and state.
-func (s *SelectableImage) handlePointerEvents(gtx layout.Context) {
+func (s *SelectableImage) handleEvents(gtx layout.Context) {
 	for {
 		e, ok := gtx.Event(
 			pointer.Filter{
 				Target: s,
 				Kinds:  pointer.Press | pointer.Move | pointer.Drag | pointer.Release,
 			},
+			key.Filter{Name: key.NameEscape},
 		)
 		if !ok {
 			break
 		}
-		ev := e.(pointer.Event)
-
-		switch ev.Kind {
-		case pointer.Press:
-			s.dragging = true
-			s.startPosition = ev.Position
-			s.endPosition = ev.Position
-		case pointer.Move, pointer.Drag:
-			if s.dragging {
-				s.endPosition = ev.Position
-			}
-		case pointer.Release:
-			s.dragging = false
+		switch ev := e.(type) {
+		case pointer.Event:
+			s.handlePointerEvents(ev)
+		case key.Event:
+			s.handleKeyEvents(ev)
 		}
-
 	}
 }
 
@@ -94,7 +112,7 @@ func (s *SelectableImage) Layout(gtx layout.Context) layout.Dimensions {
 
 	event.Op(gtx.Ops, s)
 
-	s.handlePointerEvents(gtx)
+	s.handleEvents(gtx)
 
 	if s.dragging {
 		s.drawSelectionZone(gtx)
