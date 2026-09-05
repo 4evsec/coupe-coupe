@@ -2,6 +2,7 @@ package widgets
 
 import (
 	"coupecoupe/gioui/widget"
+	"fmt"
 	"image"
 	"image/color"
 
@@ -13,57 +14,68 @@ import (
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 
+	"coupecoupe/crop"
 	"coupecoupe/math"
 )
 
 type SelectableImage struct {
-	Image widget.Image
+	Image       image.Image
+	ImageWigdet widget.Image
 
-	startPosition f32.Point
-	endPosition   f32.Point
-	dragging      bool
+	selectionStart f32.Point
+	selectionEnd   f32.Point
+	dragging       bool
 }
 
-const minimalSelectionDistanceScreenPx = 20
+const minimalSelectionDistanceScreenPx = 10
 
-func getSelectionRectangle(gtx layout.Context, start, end f32.Point) *image.Rectangle {
+func isSelectionHorizontal(start, end f32.Point) (bool, error) {
 	distX, distY := math.Distance(start, end)
 	if max(distX, distY) < minimalSelectionDistanceScreenPx {
-		return nil
+		return true, fmt.Errorf("Selection distance is too short.")
 	}
 	isHorizontal := distY >= distX
-
-	var Min, Max image.Point
-	// Depending on the crop configuration (vertical or horizontal), get a full
-	// width or a full height rectangle.
-	if isHorizontal {
-		Min = image.Pt(0, int(min(start.Y, end.Y)))
-		Max = image.Pt(gtx.Constraints.Max.X, int(max(start.Y, end.Y)))
-	} else {
-		Min = image.Pt(int(min(start.X, end.X)), 0)
-		Max = image.Pt(int(max(start.X, end.X)), gtx.Constraints.Max.Y)
-	}
-	return &image.Rectangle{Min: Min, Max: Max}
+	return isHorizontal, nil
 }
 
+func (s *SelectableImage) getRealCoordinates(p f32.Point) f32.Point {
+	return s.ImageWigdet.Transform.Invert().Transform(p)
+}
+
+func (s *SelectableImage) crop() error {
+	scaledStart := &s.selectionStart
+	scaledEnd := &s.selectionEnd
+	isHorizontal, err := isSelectionHorizontal(*scaledStart, *scaledEnd)
+	if err != nil {
+		return err
+	}
+	startCoordinate := s.getRealCoordinates(*scaledStart)
+	endCoordinate := s.getRealCoordinates(*scaledEnd)
+
+	crop.Cutout(startCoordinate.Round(), endCoordinate.Round(), s.Image, isHorizontal)
+	return nil
+}
+
+// Handles "crop" pointer drag gestures.
 func (s *SelectableImage) handlePointerEvents(ev pointer.Event) {
 	switch ev.Kind {
 	case pointer.Press:
 		s.dragging = true
-		s.startPosition = ev.Position
-		s.endPosition = ev.Position
+		s.selectionStart = ev.Position
+		s.selectionEnd = ev.Position
 	case pointer.Move, pointer.Drag:
 		if s.dragging {
-			s.endPosition = ev.Position
+			s.selectionEnd = ev.Position
 		}
 	case pointer.Release:
 		if s.dragging {
 			s.dragging = false
-			//
+			s.crop()
 		}
 	}
 }
 
+// Handles key presses.
 func (s *SelectableImage) handleKeyEvents(ev key.Event) {
 	switch ev.Name {
 	case key.NameEscape:
@@ -71,7 +83,7 @@ func (s *SelectableImage) handleKeyEvents(ev key.Event) {
 	}
 }
 
-// Handles pointer events and updates the selection position and state.
+// Root event handling logic.
 func (s *SelectableImage) handleEvents(gtx layout.Context) {
 	for {
 		e, ok := gtx.Event(
@@ -94,24 +106,31 @@ func (s *SelectableImage) handleEvents(gtx layout.Context) {
 }
 
 // Draws the selection indicator.
-func (s *SelectableImage) drawSelectionZone(gtx layout.Context) {
-	selection := getSelectionRectangle(gtx, s.startPosition, s.endPosition)
-	if selection != nil {
-		paint.FillShape(
-			gtx.Ops,
-			color.NRGBA{R: 120, G: 0, B: 0, A: 100},
-			clip.Rect(*selection).Op(),
-		)
+func (s *SelectableImage) drawSelectionZone(gtx layout.Context) error {
+	isHorizontal, err := isSelectionHorizontal(s.selectionStart, s.selectionEnd)
+	if err != nil {
+		return err
 	}
+	selection := crop.GetSelectionRectangle(
+		s.selectionStart.Round(),
+		s.selectionEnd.Round(),
+		gtx.Constraints.Max,
+		isHorizontal,
+	)
+	paint.FillShape(
+		gtx.Ops,
+		color.NRGBA{R: 120, G: 0, B: 0, A: 100},
+		clip.Rect(selection).Op(),
+	)
+	return nil
 }
 
 func (s *SelectableImage) Layout(gtx layout.Context) layout.Dimensions {
-	dims := s.Image.Layout(gtx)
+	dims := s.ImageWigdet.Layout(gtx)
 
 	defer clip.Rect{Max: dims.Size}.Push(gtx.Ops).Pop()
 
 	event.Op(gtx.Ops, s)
-
 	s.handleEvents(gtx)
 
 	if s.dragging {

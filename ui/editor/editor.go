@@ -40,11 +40,13 @@ func NewImageEditor(filePath string) (*ImageEditor, error) {
 		return nil, err
 	}
 
-	imageWidget := coupecoupewidgets.SelectableImage{Image: patchedwidget.Image{
-		Src:      paint.NewImageOp(image),
-		Fit:      patchedwidget.Contain,
-		Position: layout.Center,
-	}}
+	imageWidget := coupecoupewidgets.SelectableImage{
+		Image: image,
+		ImageWigdet: patchedwidget.Image{
+			Src:      paint.NewImageOp(image),
+			Fit:      patchedwidget.Contain,
+			Position: layout.Center,
+		}}
 
 	return &ImageEditor{
 		ImageName:    filesystem.FileName(imageFilePath),
@@ -71,7 +73,6 @@ func (ie *ImageEditor) toolbar(gtx layout.Context) layout.Dimensions {
 }
 
 func (ie *ImageEditor) drawLayout(gtx layout.Context) {
-
 	layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(ie.toolbar),
 		layout.Flexed(1, ie.imageWidget.Layout),
