@@ -13,7 +13,7 @@ import (
 )
 
 // Image is a widget that displays an image.
-type SelectableImage struct {
+type Image struct {
 	// Src is the image to display.
 	Src paint.ImageOp
 	// Fit specifies how to scale the image to the constraints.
@@ -31,7 +31,7 @@ type SelectableImage struct {
 	Transform f32.Affine2D
 }
 
-func (im *SelectableImage) Layout(gtx layout.Context) layout.Dimensions {
+func (im *Image) Layout(gtx layout.Context) layout.Dimensions {
 	scale := im.Scale
 	if scale == 0 {
 		scale = 1

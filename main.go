@@ -7,11 +7,12 @@ import (
 
 	"gioui.org/app"
 
-	"coupecoupe/ui"
+	"coupecoupe/ui/editor"
+	"coupecoupe/ui/theme"
 )
 
 func OpenImageWindow(filePath string) error {
-	ie, err := ui.NewImageEditor(filePath)
+	ie, err := editor.NewImageEditor(filePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err)
 		return err
@@ -25,7 +26,7 @@ func main() {
 	flag.Parse()
 	filePaths := flag.Args()
 
-	ui.SetupTheme()
+	theme.SetupTheme()
 
 	for _, filePath := range filePaths {
 		OpenImageWindow(filePath)

@@ -1,4 +1,4 @@
-package ui
+package theme
 
 import (
 	"gioui.org/widget/material"
