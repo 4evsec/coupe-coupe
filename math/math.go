@@ -1,6 +1,8 @@
-package image
+package math
 
-import "math"
+import (
+	"math"
+)
 
 const MinBandWidthPx = 20
 

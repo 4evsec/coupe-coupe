@@ -19,15 +19,10 @@ import (
 	coupecoupewidgets "coupecoupe/ui/widgets"
 )
 
-type ImageEditorConfig struct {
-	verticalCrop widget.Bool
-}
-
 type ImageEditor struct {
 	ImageName    string
 	OriginalFile string
 	imageWidget  coupecoupewidgets.SelectableImage
-	config       ImageEditorConfig
 }
 
 func NewImageEditor(filePath string) (*ImageEditor, error) {
@@ -64,11 +59,13 @@ func (ie *ImageEditor) toolbar(gtx layout.Context) layout.Dimensions {
 		Gap:  4,
 	}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return chaparwidgets.CheckBox(
+			return chaparwidgets.Button(
 				theme.Theme,
-				&ie.config.verticalCrop,
-				"Vertical crop",
-			).Layout(gtx)
+				&widget.Clickable{},
+				chaparwidgets.SaveIcon,
+				chaparwidgets.IconPositionStart,
+				"Save",
+			).Layout(gtx, theme.Theme)
 		}),
 	)
 }

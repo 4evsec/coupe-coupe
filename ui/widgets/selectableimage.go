@@ -11,6 +11,8 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+
+	"coupecoupe/math"
 )
 
 type SelectableImage struct {
@@ -21,18 +23,26 @@ type SelectableImage struct {
 	dragging      bool
 }
 
-func getSelectionRectangle(gtx layout.Context, start, end f32.Point) image.Rectangle {
+const minimalSelectionDistanceScreenPx = 20
+
+func getSelectionRectangle(gtx layout.Context, start, end f32.Point) *image.Rectangle {
+	distX, distY := math.Distance(start, end)
+	if max(distX, distY) < minimalSelectionDistanceScreenPx {
+		return nil
+	}
+	isHorizontal := distY >= distX
+
 	var Min, Max image.Point
 	// Depending on the crop configuration (vertical or horizontal), get a full
 	// width or a full height rectangle.
-	if false /*isVertical*/ {
-		Min = image.Pt(int(min(start.X, end.X)), 0)
-		Max = image.Pt(int(max(start.X, end.X)), gtx.Constraints.Max.Y)
-	} else {
+	if isHorizontal {
 		Min = image.Pt(0, int(min(start.Y, end.Y)))
 		Max = image.Pt(gtx.Constraints.Max.X, int(max(start.Y, end.Y)))
+	} else {
+		Min = image.Pt(int(min(start.X, end.X)), 0)
+		Max = image.Pt(int(max(start.X, end.X)), gtx.Constraints.Max.Y)
 	}
-	return image.Rectangle{Min: Min, Max: Max}
+	return &image.Rectangle{Min: Min, Max: Max}
 }
 
 // Handles pointer events and updates the selection position and state.
@@ -67,12 +77,14 @@ func (s *SelectableImage) handlePointerEvents(gtx layout.Context) {
 
 // Draws the selection indicator.
 func (s *SelectableImage) drawSelectionZone(gtx layout.Context) {
-	r := getSelectionRectangle(gtx, s.startPosition, s.endPosition)
-	paint.FillShape(
-		gtx.Ops,
-		color.NRGBA{R: 120, G: 0, B: 0, A: 100},
-		clip.Rect(r).Op(),
-	)
+	selection := getSelectionRectangle(gtx, s.startPosition, s.endPosition)
+	if selection != nil {
+		paint.FillShape(
+			gtx.Ops,
+			color.NRGBA{R: 120, G: 0, B: 0, A: 100},
+			clip.Rect(*selection).Op(),
+		)
+	}
 }
 
 func (s *SelectableImage) Layout(gtx layout.Context) layout.Dimensions {
