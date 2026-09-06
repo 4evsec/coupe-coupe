@@ -76,7 +76,11 @@ func (ie *ImageEditor) CreateWindow() {
 	go func(ie *ImageEditor) error {
 		window := new(app.Window)
 
-		window.Option(app.Title(fmt.Sprintf("%s - coupe|coupe", ie.ImageName)), app.TopMost(true))
+		window.Option(
+			app.Title(fmt.Sprintf("%s - coupe|coupe", ie.ImageName)),
+			app.TopMost(true),
+			app.MinSize(800, 600),
+		)
 
 		var ops op.Ops
 		for {
