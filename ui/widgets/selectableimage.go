@@ -1,7 +1,7 @@
 package widgets
 
 import (
-	"coupecoupe/crop"
+	"coupecoupe/cutout"
 	"coupecoupe/helpers/math"
 	"coupecoupe/pkg/gioui/widget"
 	"fmt"
@@ -53,7 +53,7 @@ func (s *SelectableImage) crop() error {
 	startCoordinate := s.getRealCoordinates(*scaledStart)
 	endCoordinate := s.getRealCoordinates(*scaledEnd)
 
-	outputImage, err := crop.Cutout(
+	outputImage, err := cutout.Cutout(
 		startCoordinate.Round(),
 		endCoordinate.Round(),
 		s.image,
@@ -130,7 +130,7 @@ func (s *SelectableImage) drawSelectionZone(gtx layout.Context) error {
 	if err != nil {
 		return err
 	}
-	selection := crop.GetSelectionRectangle(
+	selection := cutout.GetSelectionRectangle(
 		s.selectionStart.Round(),
 		s.selectionEnd.Round(),
 		gtx.Constraints.Max,

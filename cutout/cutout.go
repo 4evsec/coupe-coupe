@@ -1,4 +1,4 @@
-package crop
+package cutout
 
 import (
 	"fmt"
