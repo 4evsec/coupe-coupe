@@ -8,7 +8,7 @@ formatters:
 
   settings:
     golines:
-      max-len: 80
+      max-len: 100
       shorten-comments: true
       reformat-tags: true
 
