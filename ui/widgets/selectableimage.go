@@ -20,8 +20,8 @@ import (
 )
 
 type SelectableImage struct {
-	Image       image.Image
-	ImageWigdet widget.Image
+	image       image.Image
+	imageWidget widget.Image
 
 	selectionStart f32.Point
 	selectionEnd   f32.Point
@@ -40,7 +40,7 @@ func isSelectionHorizontal(start, end f32.Point) (bool, error) {
 }
 
 func (s *SelectableImage) getRealCoordinates(p f32.Point) f32.Point {
-	return s.ImageWigdet.Transform.Invert().Transform(p)
+	return s.imageWidget.Transform.Invert().Transform(p)
 }
 
 func (s *SelectableImage) crop() error {
@@ -56,7 +56,7 @@ func (s *SelectableImage) crop() error {
 	outputImage, err := crop.Cutout(
 		startCoordinate.Round(),
 		endCoordinate.Round(),
-		s.Image,
+		s.image,
 		isHorizontal,
 	)
 	if err != nil {
@@ -67,8 +67,8 @@ func (s *SelectableImage) crop() error {
 }
 
 func (s *SelectableImage) SetupImage(inputImage image.Image) {
-	s.Image = inputImage
-	s.ImageWigdet = patchedwidget.Image{
+	s.image = inputImage
+	s.imageWidget = patchedwidget.Image{
 		Src:      paint.NewImageOp(inputImage),
 		Fit:      patchedwidget.Contain,
 		Position: layout.Center,
@@ -141,7 +141,7 @@ func (s *SelectableImage) drawSelectionZone(gtx layout.Context) error {
 }
 
 func (s *SelectableImage) Layout(gtx layout.Context) layout.Dimensions {
-	dims := s.ImageWigdet.Layout(gtx)
+	dims := s.imageWidget.Layout(gtx)
 
 	defer clip.Rect{Max: dims.Size}.Push(gtx.Ops).Pop()
 
