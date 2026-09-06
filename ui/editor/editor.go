@@ -13,11 +13,9 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/widget"
 
-	patchedwidget "coupecoupe/gioui/widget"
+	uiwidgets "coupecoupe/ui/widgets"
 
 	chaparwidgets "github.com/chapar-rest/chapar/ui/widgets"
-
-	uiwidgets "coupecoupe/ui/widgets"
 )
 
 type ImageEditor struct {
@@ -41,14 +39,8 @@ func NewImageEditor(filePath string) (*ImageEditor, error) {
 		return nil, err
 	}
 
-	imageWidget := uiwidgets.SelectableImage{
-		Image: image,
-		ImageWigdet: patchedwidget.Image{
-			Src:      paint.NewImageOp(image),
-			Fit:      patchedwidget.Contain,
-			Position: layout.Center,
-		},
-	}
+	imageWidget := uiwidgets.SelectableImage{}
+	imageWidget.SetupImage(image)
 
 	return &ImageEditor{
 		ImageName:    filesystem.FileName(imageFilePath),
@@ -84,10 +76,7 @@ func (ie *ImageEditor) CreateWindow() {
 	go func(ie *ImageEditor) error {
 		window := new(app.Window)
 
-		window.Option(
-			app.Title(fmt.Sprintf("%s - coupe|coupe", ie.ImageName)),
-			app.TopMost(true),
-		)
+		window.Option(app.Title(fmt.Sprintf("%s - coupe|coupe", ie.ImageName)), app.TopMost(true))
 
 		var ops op.Ops
 		for {

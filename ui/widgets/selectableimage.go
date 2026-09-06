@@ -15,6 +15,8 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+
+	patchedwidget "coupecoupe/gioui/widget"
 )
 
 type SelectableImage struct {
@@ -51,16 +53,29 @@ func (s *SelectableImage) crop() error {
 	startCoordinate := s.getRealCoordinates(*scaledStart)
 	endCoordinate := s.getRealCoordinates(*scaledEnd)
 
-	crop.Cutout(
+	outputImage, err := crop.Cutout(
 		startCoordinate.Round(),
 		endCoordinate.Round(),
 		s.Image,
 		isHorizontal,
 	)
+	if err != nil {
+		return err
+	}
+	s.SetupImage(outputImage)
 	return nil
 }
 
-// Handles "crop" pointer drag gestures.
+func (s *SelectableImage) SetupImage(inputImage image.Image) {
+	s.Image = inputImage
+	s.ImageWigdet = patchedwidget.Image{
+		Src:      paint.NewImageOp(inputImage),
+		Fit:      patchedwidget.Contain,
+		Position: layout.Center,
+	}
+}
+
+// Handles "crop" pointer drag/mousedown gestures.
 func (s *SelectableImage) handlePointerEvents(ev pointer.Event) {
 	switch ev.Kind {
 	case pointer.Press:
@@ -121,11 +136,7 @@ func (s *SelectableImage) drawSelectionZone(gtx layout.Context) error {
 		gtx.Constraints.Max,
 		isHorizontal,
 	)
-	paint.FillShape(
-		gtx.Ops,
-		color.NRGBA{R: 120, G: 0, B: 0, A: 100},
-		clip.Rect(selection).Op(),
-	)
+	paint.FillShape(gtx.Ops, color.NRGBA{R: 120, G: 0, B: 0, A: 100}, clip.Rect(selection).Op())
 	return nil
 }
 
