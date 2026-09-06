@@ -1,7 +1,7 @@
 package editor
 
 import (
-	"coupecoupe/filesystem"
+	"coupecoupe/helpers/filesystem"
 	"coupecoupe/ui/theme"
 	"fmt"
 	"image"

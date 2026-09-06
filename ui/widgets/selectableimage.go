@@ -2,8 +2,8 @@ package widgets
 
 import (
 	"coupecoupe/crop"
-	"coupecoupe/gioui/widget"
-	"coupecoupe/math"
+	"coupecoupe/helpers/math"
+	"coupecoupe/pkg/gioui/widget"
 	"fmt"
 	"image"
 	"image/color"
@@ -16,7 +16,7 @@ import (
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 
-	patchedwidget "coupecoupe/gioui/widget"
+	patchedwidget "coupecoupe/pkg/gioui/widget"
 )
 
 type SelectableImage struct {
