@@ -19,7 +19,7 @@ import (
 	patchedwidget "coupecoupe/pkg/gioui/widget"
 )
 
-type SelectableImage struct {
+type EditableImage struct {
 	image       image.Image
 	imageWidget widget.Image
 
@@ -39,11 +39,11 @@ func isSelectionHorizontal(start, end f32.Point) (bool, error) {
 	return isHorizontal, nil
 }
 
-func (s *SelectableImage) getRealCoordinates(p f32.Point) f32.Point {
+func (s *EditableImage) getRealCoordinates(p f32.Point) f32.Point {
 	return s.imageWidget.Transform.Invert().Transform(p)
 }
 
-func (s *SelectableImage) crop() error {
+func (s *EditableImage) crop() error {
 	scaledStart := &s.selectionStart
 	scaledEnd := &s.selectionEnd
 	isHorizontal, err := isSelectionHorizontal(*scaledStart, *scaledEnd)
@@ -66,7 +66,7 @@ func (s *SelectableImage) crop() error {
 	return nil
 }
 
-func (s *SelectableImage) SetupImage(inputImage image.Image) {
+func (s *EditableImage) SetupImage(inputImage image.Image) {
 	s.image = inputImage
 	s.imageWidget = patchedwidget.Image{
 		Src:      paint.NewImageOp(inputImage),
@@ -76,7 +76,7 @@ func (s *SelectableImage) SetupImage(inputImage image.Image) {
 }
 
 // Handles "crop" pointer drag/mousedown gestures.
-func (s *SelectableImage) handlePointerEvents(ev pointer.Event) {
+func (s *EditableImage) handlePointerEvents(ev pointer.Event) {
 	switch ev.Kind {
 	case pointer.Press:
 		s.dragging = true
@@ -95,7 +95,7 @@ func (s *SelectableImage) handlePointerEvents(ev pointer.Event) {
 }
 
 // Handles key presses.
-func (s *SelectableImage) handleKeyEvents(ev key.Event) {
+func (s *EditableImage) handleKeyEvents(ev key.Event) {
 	switch ev.Name {
 	case key.NameEscape:
 		s.dragging = false
@@ -103,7 +103,7 @@ func (s *SelectableImage) handleKeyEvents(ev key.Event) {
 }
 
 // Root event handling logic.
-func (s *SelectableImage) handleEvents(gtx layout.Context) {
+func (s *EditableImage) handleEvents(gtx layout.Context) {
 	for {
 		e, ok := gtx.Event(
 			pointer.Filter{
@@ -125,7 +125,7 @@ func (s *SelectableImage) handleEvents(gtx layout.Context) {
 }
 
 // Draws the selection indicator.
-func (s *SelectableImage) drawSelectionZone(gtx layout.Context) error {
+func (s *EditableImage) drawSelectionZone(gtx layout.Context) error {
 	isHorizontal, err := isSelectionHorizontal(s.selectionStart, s.selectionEnd)
 	if err != nil {
 		return err
@@ -140,7 +140,7 @@ func (s *SelectableImage) drawSelectionZone(gtx layout.Context) error {
 	return nil
 }
 
-func (s *SelectableImage) Layout(gtx layout.Context) layout.Dimensions {
+func (s *EditableImage) Layout(gtx layout.Context) layout.Dimensions {
 	dims := s.imageWidget.Layout(gtx)
 
 	defer clip.Rect{Max: dims.Size}.Push(gtx.Ops).Pop()
