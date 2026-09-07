@@ -1,4 +1,6 @@
 # coupe|coupe
 
-An image cut-out application, inspired by Snagit's "Cut Out" tool.
+A minimal image cut-out GUI application, inspired by Snagit's "Cut Out" tool.
+
+
 
