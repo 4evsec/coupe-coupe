@@ -19,16 +19,23 @@ import (
 	patchedwidget "coupecoupe/pkg/gioui/widget"
 )
 
+const minimalSelectionDistanceScreenPx = 10
+
 type EditableImage struct {
-	image       image.Image
-	imageWidget widget.Image
+	Image       image.Image
+	imageWidget *widget.Image
 
 	selectionStart f32.Point
 	selectionEnd   f32.Point
 	dragging       bool
+	updated        bool
 }
 
-const minimalSelectionDistanceScreenPx = 10
+func NewEditableImage(inputImage image.Image) *EditableImage {
+	e := EditableImage{Image: inputImage}
+	e.SetupWidget()
+	return &e
+}
 
 func isSelectionHorizontal(start, end f32.Point) (bool, error) {
 	distX, distY := math.Distance(start, end)
@@ -56,22 +63,22 @@ func (s *EditableImage) crop() error {
 	outputImage, err := cutout.Cutout(
 		startCoordinate.Round(),
 		endCoordinate.Round(),
-		s.image,
+		s.Image,
 		isHorizontal,
 	)
 	if err != nil {
 		return err
 	}
-	s.SetupImage(outputImage)
+	s.Image = outputImage
+	s.updated = true
 	return nil
 }
 
-func (s *EditableImage) SetupImage(inputImage image.Image) {
-	s.image = inputImage
-	s.imageWidget = patchedwidget.Image{
-		Src:      paint.NewImageOp(inputImage),
+func (s *EditableImage) SetupWidget() {
+	s.imageWidget = &patchedwidget.Image{
 		Fit:      patchedwidget.Contain,
 		Position: layout.Center,
+		Src:      paint.NewImageOp(s.Image),
 	}
 }
 
@@ -89,7 +96,9 @@ func (s *EditableImage) handlePointerEvents(ev pointer.Event) {
 	case pointer.Release:
 		if s.dragging {
 			s.dragging = false
-			s.crop()
+			err := s.crop()
+			if err != nil {
+			}
 		}
 	}
 }
@@ -142,15 +151,19 @@ func (s *EditableImage) drawSelectionZone(gtx layout.Context) error {
 
 func (s *EditableImage) Layout(gtx layout.Context) layout.Dimensions {
 	dims := s.imageWidget.Layout(gtx)
-
 	defer clip.Rect{Max: dims.Size}.Push(gtx.Ops).Pop()
 
 	event.Op(gtx.Ops, s)
 	s.handleEvents(gtx)
 
+	if s.updated {
+		s.updated = false
+		s.imageWidget.Src = paint.NewImageOp(s.Image)
+		dims = s.imageWidget.Layout(gtx)
+	}
+
 	if s.dragging {
 		s.drawSelectionZone(gtx)
 	}
-
 	return dims
 }

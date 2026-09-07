@@ -21,7 +21,7 @@ import (
 type ImageEditor struct {
 	ImageName    string
 	OriginalFile string
-	imageWidget  uiwidgets.EditableImage
+	imageWidget  *uiwidgets.EditableImage
 }
 
 func NewImageEditor(filePath string) (*ImageEditor, error) {
@@ -39,8 +39,7 @@ func NewImageEditor(filePath string) (*ImageEditor, error) {
 		return nil, err
 	}
 
-	imageWidget := uiwidgets.EditableImage{}
-	imageWidget.SetupImage(image)
+	imageWidget := uiwidgets.NewEditableImage(image)
 
 	return &ImageEditor{
 		ImageName:    filesystem.FileName(imageFilePath),
