@@ -150,20 +150,19 @@ func (s *EditableImage) drawSelectionZone(gtx layout.Context) error {
 }
 
 func (s *EditableImage) Layout(gtx layout.Context) layout.Dimensions {
+	if s.updated {
+		s.updated = false
+		s.imageWidget.Src = paint.NewImageOp(s.Image)
+	}
 	dims := s.imageWidget.Layout(gtx)
-	defer clip.Rect{Max: dims.Size}.Push(gtx.Ops).Pop()
+	r1 := clip.Rect{Max: dims.Size}.Push(gtx.Ops)
 
 	event.Op(gtx.Ops, s)
 	s.handleEvents(gtx)
 
-	if s.updated {
-		s.updated = false
-		s.imageWidget.Src = paint.NewImageOp(s.Image)
-		dims = s.imageWidget.Layout(gtx)
-	}
-
 	if s.dragging {
 		s.drawSelectionZone(gtx)
 	}
+	r1.Pop()
 	return dims
 }
