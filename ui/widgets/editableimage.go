@@ -145,7 +145,11 @@ func (s *EditableImage) drawSelectionZone(gtx layout.Context) error {
 		gtx.Constraints.Max,
 		isHorizontal,
 	)
-	paint.FillShape(gtx.Ops, color.NRGBA{R: 120, G: 0, B: 0, A: 100}, clip.Rect(selection).Op())
+	paint.FillShape(
+		gtx.Ops,
+		color.NRGBA{R: 120, G: 0, B: 0, A: 100},
+		clip.Rect(selection).Op(),
+	)
 	return nil
 }
 

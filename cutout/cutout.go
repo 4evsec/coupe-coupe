@@ -37,19 +37,36 @@ func Cutout(
 	inputImage image.Image,
 	isHorizontal bool,
 ) (image.Image, error) {
-	selectionRectagle := GetSelectionRectangle(start, end, inputImage.Bounds().Max, isHorizontal)
+	selectionRectagle := GetSelectionRectangle(
+		start,
+		end,
+		inputImage.Bounds().Max,
+		isHorizontal,
+	)
 	bandWidth := 50
 
 	// The following assumptions are stated on a vertical axis:
-	cropMax := image.Point{X: selectionRectagle.Bounds().Min.X, Y: selectionRectagle.Bounds().Max.Y}
-	cropMin := image.Point{X: selectionRectagle.Bounds().Max.X, Y: selectionRectagle.Bounds().Min.Y}
+	cropMax := image.Point{
+		X: selectionRectagle.Bounds().Min.X,
+		Y: selectionRectagle.Bounds().Max.Y,
+	}
+	cropMin := image.Point{
+		X: selectionRectagle.Bounds().Max.X,
+		Y: selectionRectagle.Bounds().Min.Y,
+	}
 
 	if isHorizontal {
 		cropMax, cropMin = cropMin, cropMax
 	}
 
-	crop1 := imageSub(inputImage, image.Rectangle{Min: inputImage.Bounds().Min, Max: cropMax})
-	crop2 := imageSub(inputImage, image.Rectangle{Min: cropMin, Max: inputImage.Bounds().Max})
+	crop1 := imageSub(
+		inputImage,
+		image.Rectangle{Min: inputImage.Bounds().Min, Max: cropMax},
+	)
+	crop2 := imageSub(
+		inputImage,
+		image.Rectangle{Min: cropMin, Max: inputImage.Bounds().Max},
+	)
 
 	var canvasRectangle image.Rectangle
 	if isHorizontal {
@@ -68,7 +85,9 @@ func Cutout(
 
 	canvas := image.NewRGBA(canvasRectangle)
 	if canvas == nil {
-		return nil, fmt.Errorf("An error occured while creating the new image canvas.")
+		return nil, fmt.Errorf(
+			"An error occured while creating the new image canvas.",
+		)
 	}
 	draw.Draw(
 		canvas,
