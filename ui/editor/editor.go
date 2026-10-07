@@ -80,6 +80,7 @@ func (ie *ImageEditor) CreateWindow() {
 		)
 
 		var ops op.Ops
+
 		for {
 			switch e := window.Event().(type) {
 			case app.DestroyEvent:
@@ -92,7 +93,6 @@ func (ie *ImageEditor) CreateWindow() {
 				// Setup background color
 
 				ie.drawLayout(gtx)
-
 				e.Frame(gtx.Ops)
 			}
 		}

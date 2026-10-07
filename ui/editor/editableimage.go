@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"sync"
 
 	"gioui.org/f32"
 	"gioui.org/io/event"
@@ -23,10 +22,7 @@ import (
 
 const SelectionMinimalDistancePx = 10
 
-var (
-	SelectionFillColor = color.NRGBA{R: 120, G: 0, B: 0, A: 100}
-	wg                 sync.WaitGroup
-)
+var SelectionFillColor = color.NRGBA{R: 120, G: 0, B: 0, A: 100}
 
 type EditableImage struct {
 	Image       image.Image
