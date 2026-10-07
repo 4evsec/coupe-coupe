@@ -1,12 +1,14 @@
-package widgets
+package editor
 
 import (
 	"coupecoupe/helpers/math"
 	"coupecoupe/pkg/gioui/widget"
 	"coupecoupe/services/cutout"
+	"coupecoupe/ui/theme"
 	"fmt"
 	"image"
 	"image/color"
+	"sync"
 
 	"gioui.org/f32"
 	"gioui.org/io/event"
@@ -19,7 +21,12 @@ import (
 	patchedwidget "coupecoupe/pkg/gioui/widget"
 )
 
-const minimalSelectionDistanceScreenPx = 10
+const SelectionMinimalDistancePx = 10
+
+var (
+	SelectionFillColor = color.NRGBA{R: 120, G: 0, B: 0, A: 100}
+	wg                 sync.WaitGroup
+)
 
 type EditableImage struct {
 	Image       image.Image
@@ -28,7 +35,6 @@ type EditableImage struct {
 	selectionStart f32.Point
 	selectionEnd   f32.Point
 	dragging       bool
-	updated        bool
 }
 
 func NewEditableImage(inputImage image.Image) *EditableImage {
@@ -39,7 +45,7 @@ func NewEditableImage(inputImage image.Image) *EditableImage {
 
 func isSelectionHorizontal(start, end f32.Point) (bool, error) {
 	distX, distY := math.Distance(start, end)
-	if max(distX, distY) < minimalSelectionDistanceScreenPx {
+	if max(distX, distY) < SelectionMinimalDistancePx {
 		return true, fmt.Errorf("Selection distance is too short.")
 	}
 	isHorizontal := distY >= distX
@@ -70,7 +76,6 @@ func (s *EditableImage) crop() error {
 		return err
 	}
 	s.Image = outputImage
-	s.updated = true
 	return nil
 }
 
@@ -83,7 +88,7 @@ func (s *EditableImage) SetupWidget() {
 }
 
 // Handles "crop" pointer drag/mousedown gestures.
-func (s *EditableImage) handlePointerEvents(ev pointer.Event) {
+func (s *EditableImage) handlePointerEvents(ev pointer.Event) bool {
 	switch ev.Kind {
 	case pointer.Press:
 		s.dragging = true
@@ -96,23 +101,24 @@ func (s *EditableImage) handlePointerEvents(ev pointer.Event) {
 	case pointer.Release:
 		if s.dragging {
 			s.dragging = false
-			err := s.crop()
-			if err != nil {
-			}
+			s.crop()
+			return true
 		}
 	}
+	return false
 }
 
 // Handles key presses.
-func (s *EditableImage) handleKeyEvents(ev key.Event) {
+func (s *EditableImage) handleKeyEvents(ev key.Event) bool {
 	switch ev.Name {
 	case key.NameEscape:
 		s.dragging = false
 	}
+	return false
 }
 
 // Root event handling logic.
-func (s *EditableImage) handleEvents(gtx layout.Context) {
+func (s *EditableImage) handleEvents(gtx layout.Context) bool {
 	for {
 		e, ok := gtx.Event(
 			pointer.Filter{
@@ -126,11 +132,13 @@ func (s *EditableImage) handleEvents(gtx layout.Context) {
 		}
 		switch ev := e.(type) {
 		case pointer.Event:
-			s.handlePointerEvents(ev)
+			return s.handlePointerEvents(ev)
+
 		case key.Event:
-			s.handleKeyEvents(ev)
+			return s.handleKeyEvents(ev)
 		}
 	}
+	return false
 }
 
 // Draws the selection indicator.
@@ -147,26 +155,42 @@ func (s *EditableImage) drawSelectionZone(gtx layout.Context) error {
 	)
 	paint.FillShape(
 		gtx.Ops,
-		color.NRGBA{R: 120, G: 0, B: 0, A: 100},
+		SelectionFillColor,
 		clip.Rect(selection).Op(),
 	)
 	return nil
 }
 
 func (s *EditableImage) Layout(gtx layout.Context) layout.Dimensions {
-	if s.updated {
-		s.updated = false
-		s.imageWidget.Src = paint.NewImageOp(s.Image)
-	}
-	dims := s.imageWidget.Layout(gtx)
-	r1 := clip.Rect{Max: dims.Size}.Push(gtx.Ops)
+	var (
+		imageStack clip.Stack
+		dims       layout.Dimensions
+	)
 
-	event.Op(gtx.Ops, s)
-	s.handleEvents(gtx)
+	for {
+		paint.FillShape(
+			gtx.Ops,
+			theme.Theme.Bg,
+			clip.Rect(image.Rect(0, 0, dims.Size.X, dims.Size.Y)).Op(),
+		)
+
+		s.imageWidget.Src = paint.NewImageOp(s.Image)
+		dims = s.imageWidget.Layout(gtx)
+
+		imageStack = clip.Rect{Max: dims.Size}.Push(gtx.Ops)
+
+		event.Op(gtx.Ops, s)
+		update := s.handleEvents(gtx)
+
+		if !update {
+			break
+		}
+	}
 
 	if s.dragging {
 		s.drawSelectionZone(gtx)
 	}
-	r1.Pop()
+
+	imageStack.Pop()
 	return dims
 }

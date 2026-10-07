@@ -13,15 +13,13 @@ import (
 	"gioui.org/op/paint"
 	"gioui.org/widget"
 
-	uiwidgets "coupecoupe/ui/widgets"
-
 	chaparwidgets "github.com/chapar-rest/chapar/ui/widgets"
 )
 
 type ImageEditor struct {
 	ImageName    string
 	OriginalFile string
-	imageWidget  *uiwidgets.EditableImage
+	imageWidget  *EditableImage
 }
 
 func NewImageEditor(filePath string) (*ImageEditor, error) {
@@ -39,7 +37,7 @@ func NewImageEditor(filePath string) (*ImageEditor, error) {
 		return nil, err
 	}
 
-	imageWidget := uiwidgets.NewEditableImage(image)
+	imageWidget := NewEditableImage(image)
 
 	return &ImageEditor{
 		ImageName:    filesystem.FileName(imageFilePath),
