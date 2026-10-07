@@ -18,7 +18,7 @@ import (
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 
-	patchedwidget "coupecoupe/pkg/gioui/widget"
+	patchedWidget "coupecoupe/pkg/gioui/widget"
 )
 
 const SelectionMinimalDistancePx = 10
@@ -80,8 +80,8 @@ func (s *EditableImage) crop() error {
 }
 
 func (s *EditableImage) SetupWidget() {
-	s.imageWidget = &patchedwidget.Image{
-		Fit:      patchedwidget.Contain,
+	s.imageWidget = &patchedWidget.Image{
+		Fit:      patchedWidget.Contain,
 		Position: layout.Center,
 		Src:      paint.NewImageOp(s.Image),
 	}
@@ -180,9 +180,9 @@ func (s *EditableImage) Layout(gtx layout.Context) layout.Dimensions {
 		imageStack = clip.Rect{Max: dims.Size}.Push(gtx.Ops)
 
 		event.Op(gtx.Ops, s)
-		update := s.handleEvents(gtx)
+		reupdateRequired := s.handleEvents(gtx)
 
-		if !update {
+		if !reupdateRequired {
 			break
 		}
 	}
