@@ -1,9 +1,9 @@
 package widgets
 
 import (
-	"coupecoupe/cutout"
 	"coupecoupe/helpers/math"
 	"coupecoupe/pkg/gioui/widget"
+	"coupecoupe/services/cutout"
 	"fmt"
 	"image"
 	"image/color"
